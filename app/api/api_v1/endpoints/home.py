@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Depends
-# from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from app.crud import crud_cat as crud
 from app.api import deps

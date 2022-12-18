@@ -1,3 +1,6 @@
+# This file is not used in the current version of the project
+# It is required in case of using sync DB
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
