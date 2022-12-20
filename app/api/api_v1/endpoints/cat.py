@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-# from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Optional, List
 
@@ -9,6 +8,14 @@ from app.schemas.cat import Cat, CatCreate, CatUpdate
 
 router = APIRouter()
 
+
+@router.get("/", status_code=200, response_model=List[Cat])
+async def get_all_cats(
+        *, db: AsyncSession = Depends(deps.get_db)
+) -> List[Optional[Cat]]:
+    results = await crud.cat.get_multi(db=db, skip=0, limit=10)
+
+    return results
 
 @router.get("/{cat_id}", status_code=200, response_model=Cat)
 async def find_cat(
@@ -30,7 +37,7 @@ async def find_cat(
     return result
 
 
-@router.get("/search/", status_code=200, response_model=List[Cat])
+@router.get("/search", status_code=200, response_model=List[Cat])
 async def search_cats(
         *,
         search_name: Optional[str] = Query(None, min_length=3, example="Smokey"),
@@ -44,15 +51,15 @@ async def search_cats(
     return results
 
 
-@router.post("/", status_code=201, response_model=Cat)
+@router.post("/post", status_code=201, response_model=Cat)
 async def create_cat(
         *, cat_in: CatCreate, db: AsyncSession = Depends(deps.get_db)
 ) -> dict:
     """
     Create a new cat entry in the database.
     """
-    if cat_in.owner_id == 0:
-        cat_in.owner_id = None
+    # if cat_in.owner_id == 0:
+    #     cat_in.owner_id = None
     cat = await crud.cat.create(db=db, obj_in=cat_in)
 
     return cat
