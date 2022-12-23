@@ -2,8 +2,9 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+# from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+from sqlalchemy import select, func
 
 from app.db.base_class import Base
 
@@ -22,37 +23,42 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
-        return await db.get(self.model, id)
+    def get(self, db: Session, id: Any) -> Optional[ModelType]:
+        # return await db.get(self.model, id)
+        return db.get(self.model, id)
 
-    async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100
+    def get_multi(
+        self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
         q = select(self.model).offset(skip).limit(limit)
-        query = await db.execute(q)
+        # query = await db.execute(q)
+        query = db.execute(q)
         return query.scalars().all()
 
-    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
+    def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data)  # type: ignore
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        # await db.commit()
+        # await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    # я замінив db_obj на db_obj_id, адже мені здавалось логічнішим витягувати об'єкт з БД тут, а не в
-    # ендпоінтах
-    async def update(
+    ## я замінив db_obj на db_obj_id, адже мені здавалось логічнішим витягувати об'єкт з БД тут, а не в
+    ## ендпоінтах
+    def update(
         self,
-        db: AsyncSession,
+        db: Session,
         *,
-        #db_obj: ModelType,
-        db_obj_id: Any,
+        db_obj: ModelType,
+        # db_obj_id: Any,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]]
     ) -> Optional[ModelType]:
-        db_obj = await db.get(self.model, db_obj_id)
-        if not db_obj:
-            return
+        # db_obj = await db.get(self.model, db_obj_id)
+        # db_obj = db.get(self.model, db_obj_id)
+        # if not db_obj:
+        #     return
 
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
@@ -63,12 +69,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        # await db.commit()
+        # await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def remove(self, db: AsyncSession, *, id: int) -> ModelType:
-        obj = await db.get(self.model, id)
-        await db.delete(obj)
-        await db.commit()
+    def remove(self, db: Session, *, id: int) -> ModelType:
+        # obj = await db.get(self.model, id)
+        # await db.delete(obj)
+        # await db.commit()
+        obj = db.get(self.model, id)
+        db.delete(obj)
+        db.commit()
         return obj
+
+
+

@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
-from app.crud import crud_cat as crud
 from app.api import deps
-from app.schemas.cat import Cat
 from typing import List, Optional, Any
 
 router = APIRouter()
@@ -18,8 +17,9 @@ router = APIRouter()
 #     return results
 
 @router.get("/", status_code=200)
-async def get_homepage(
-        *, db: AsyncSession = Depends(deps.get_db)
+def get_homepage(
+        *, db: Session = Depends(deps.get_db)
 ) -> Any:
 
     return {"Detail": "Мертвим очам не потрібно світло"}
+

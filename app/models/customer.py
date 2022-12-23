@@ -2,10 +2,12 @@ from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
-from app.models.catcustomer import catcustomer
+from app.models.catcustomer import catcustomer_table
 
 
 class Customer(Base):
+    __tablename__ = "customer"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256), nullable=False)
     age = Column(Integer, nullable=True)
@@ -14,8 +16,8 @@ class Customer(Base):
 
     cats = relationship(
         "Cat",
-        secondary=catcustomer,
-        back_populates="customers",
+        secondary=catcustomer_table,
+        back_populates="customers"
     )
 
     # backref='Customer'?
